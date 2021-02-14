@@ -25,6 +25,11 @@ dependencies {
     implementation("org.apache.phoenix:phoenix-core:4.14.3-HBase-1.4") {
         exclude group: 'org.mortbay.jetty', module: "jsp-2.1"
     }
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:2.2.4.RELEASE'
+    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter', version: '3.0.1'
+
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

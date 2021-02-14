@@ -6,9 +6,11 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.kpfu.itis.hbaseloader.config.PhoenixConnectionManager;
+import ru.kpfu.itis.hbaseloader.proxy.CoordinatorProxy;
 import ru.kpfu.itis.hbaseloader.util.DateUtil;
 
 import javax.annotation.PostConstruct;
+import java.net.URI;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +24,7 @@ public class HbaseLoaderService {
     private final QueryFormatterService queryFormatterService;
     private final KafkaProducerService kafkaProducerService;
     private final DateUtil dateUtil;
+    private final CoordinatorProxy coordinatorProxy;
 
     @Value("${application.config.id-field}")
     private String id;
@@ -31,6 +34,9 @@ public class HbaseLoaderService {
     private List<String> types;
     @Value("${application.config.fields}")
     private List<String> fields;
+
+    @Value("${application.config.coordinator-url}")
+    private String coordinatorHost;
 
     private Map<String, String> fieldsToTypes;
 
@@ -46,44 +52,48 @@ public class HbaseLoaderService {
 
     @PostConstruct
     public void loadEntries() throws SQLException {
-        String select = queryFormatterService.formSelect();
+        while (true) {
+            String where = coordinatorProxy.coordinate(URI.create(coordinatorHost + "/coordinate"));
+            if ("null".equals(where)) break;
+            String select = queryFormatterService.formSelect(where);
 
-        try (Connection connection = phoenixConnectionManager.getConnection()) {
-            Statement statement = connection.createStatement();
-            //на случай если была аварийная ситуация и не удалили курсор
-            statement.execute("CLOSE entries_cursor");
-            statement.execute(select);
-            try {
-                statement.execute("OPEN entries_cursor");
+            try (Connection connection = phoenixConnectionManager.getConnection()) {
+                Statement statement = connection.createStatement();
+                //на случай если была аварийная ситуация и не удалили курсор
+                statement.execute("CLOSE entries_cursor");
+                statement.execute(select);
+                try {
+                    statement.execute("OPEN entries_cursor");
 
-                int it = 0;
-                while (true) {
-                    log.info(String.format("Batch loading start, iteration %d", it));
-                    boolean empty = true;
-                    try (ResultSet resultSet =
-                                 statement.executeQuery(String.format("FETCH NEXT %d ROWS FROM entries_cursor", batchSize))) {
-                        while (resultSet.next()) {
-                            if (empty) empty = false;
-                            try {
-                                JSONObject obj = readRow(resultSet);
-                                kafkaProducerService.sendCisesMessage(obj.getString(id), obj.toString());
-                            } catch (Exception e) {
-                                log.error(String.format("Id: %s", resultSet.getString(id)), e);
-                                continue;
+                    int it = 0;
+                    while (true) {
+                        log.info(String.format("Batch loading start, iteration %d", it));
+                        boolean empty = true;
+                        try (ResultSet resultSet =
+                                     statement.executeQuery(String.format("FETCH NEXT %d ROWS FROM entries_cursor", batchSize))) {
+                            while (resultSet.next()) {
+                                if (empty) empty = false;
+                                try {
+                                    JSONObject obj = readRow(resultSet);
+                                    kafkaProducerService.sendCisesMessage(obj.getString(id), obj.toString());
+                                } catch (Exception e) {
+                                    log.error(String.format("Id: %s", resultSet.getString(id)), e);
+                                    continue;
+                                }
                             }
+                            if (empty) break;
+                        } catch (Exception e) {
+                            log.error("Error", e);
+                            continue;
                         }
-                        if (empty) break;
-                    } catch (Exception e) {
-                        log.error("Error", e);
-                        continue;
+                        it++;
                     }
-                    it++;
+                    statement.execute("CLOSE entries_cursor");
+                } catch (Exception e) {
+                    log.error("Execution exception", e);
+                    statement.execute("CLOSE entries_cursor");
+                    throw new SQLException(e);
                 }
-                statement.execute("CLOSE entries_cursor");
-            } catch (Exception e) {
-                log.error("Execution exception", e);
-                statement.execute("CLOSE entries_cursor");
-                throw new SQLException(e);
             }
         }
     }

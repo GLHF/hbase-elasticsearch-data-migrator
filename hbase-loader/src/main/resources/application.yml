@@ -24,6 +24,7 @@ application:
     types: ${TYPES:varchar,date,object,varchar,decimal,boolean,double,timestamp}
     date-formats: ${DATE_FORMATS:yyyy-MM-dd HH:mm:ss.SSS;yyyy-MM-dd HH:mm:ss}
     query: ${QUERY:}
+    coordinator-url: ${COORDINATOR:http://localhost:8089}
     hbase:
       url: ${HBASE_URL:localhost}
       login: ${HBASE_LOGIN:}

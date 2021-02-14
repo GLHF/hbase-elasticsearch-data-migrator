@@ -15,14 +15,12 @@ public class QueryFormatterService {
     private String tableName;
     @Value("${application.config.fields}")
     private String fieldNames;
-    @Value("${application.config.query}")
-    private String query;
 
     private static final String SELECT = "DECLARE entries_cursor CURSOR FOR SELECT %s FROM %s %s";
-    public String formSelect() {
+    public String formSelect(String where) {
         String fields = Arrays.stream(fieldNames.split(","))
                 .map(field -> "\"" + field + "\"")
                 .reduce((field1, field2) -> field1.concat(",".concat(field2))).get();
-        return String.format(SELECT, fields, tableName, query);
+        return String.format(SELECT, fields, tableName, where);
     }
 }
