@@ -23,7 +23,6 @@ application:
     fields: ${FIELDS:id,field1,filed2,filed3,filed4,filed5,filed6,filed7}
     types: ${TYPES:varchar,date,object,varchar,decimal,boolean,double,timestamp}
     date-formats: ${DATE_FORMATS:yyyy-MM-dd HH:mm:ss.SSS;yyyy-MM-dd HH:mm:ss}
-    query: ${QUERY:}
     coordinator-url: ${COORDINATOR:http://localhost:8089}
     hbase:
       url: ${HBASE_URL:localhost}
@@ -31,4 +30,4 @@ application:
       password: ${HBASE_PASSWORD:}
 
 server:
-  port: ${IES_SERVER_PORT:8080}
+  port: ${HBASE_LOADER_SERVER_PORT:8080}

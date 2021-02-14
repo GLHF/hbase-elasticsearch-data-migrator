@@ -11,7 +11,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       auto-offset-reset: earliest
       bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
-      max-poll-records: ${PL_BATCH_SIZE:1000}
+      max-poll-records: ${BATCH_SIZE:1000}
       isolation-level: read_committed
     listener:
       ack-mode: manual_immediate

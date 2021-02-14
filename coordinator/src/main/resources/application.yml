@@ -4,4 +4,4 @@ application:
     id-field: ${ID_FIELD:did}
 
 server:
-  port: ${IES_SERVER_PORT:8089}
+  port: ${COORDINATOR_SERVER_PORT:8089}

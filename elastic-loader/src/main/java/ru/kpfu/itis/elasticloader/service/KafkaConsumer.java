@@ -22,7 +22,6 @@ import java.util.List;
 @Slf4j
 public class KafkaConsumer {
     private final RestHighLevelClient elasticsearchRestClient;
-    private final ObjectMapper mapper = new ObjectMapper();
 
     @Value("${application.config.index-name}")
     private String index;
