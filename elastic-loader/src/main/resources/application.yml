@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: application
+  kafka:
+    topic:
+      topic-name: ${ENTRIES_TOPIC_NAME:entries.topic}
+    consumer:
+      group-id: ${CONSUMER_GROUP_ID:consumer}
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+      max-poll-records: ${PL_BATCH_SIZE:1000}
+      isolation-level: read_committed
+    listener:
+      ack-mode: manual_immediate
+      type: batch
+  elasticsearch:
+    rest:
+      uris: ${ELASTIC_HOSTS:localhost:9200}
+      read-timeout: 30s
+      username: ${ELASTIC_USER}
+      password: ${ELASTIC_PASS}
+
+application:
+  config:
+    index-name: ${INDEX_NAME:index}
+
+server:
+  port: ${SERVER_PORT:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health

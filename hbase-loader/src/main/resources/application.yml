@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: application
+  kafka:
+    topic:
+      entries-topic: ${ENTRIES_TOPIC_NAME:entries.topic}
+    producer:
+      bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        max:
+          request:
+            size: 130000000
+        enable:
+          idempotence: true
+
+application:
+  config:
+    id-field: ${ID_FIELD_NAME:id}
+    table-name: ${HBASE_TABLE:TBL_JTI_TRACE_CIS}
+    batch-size: ${BATCH_SIZE:200}
+    fields: ${FIELDS:id,field1,filed2,filed3,filed4,filed5,filed6,filed7}
+    types: ${TYPES:varchar,date,object,varchar,decimal,boolean,double,timestamp}
+    date-formats: ${DATE_FORMATS:yyyy-MM-dd HH:mm:ss.SSS;yyyy-MM-dd HH:mm:ss}
+    query: ${QUERY:}
+    hbase:
+      url: ${HBASE_URL:localhost}
+      login: ${HBASE_LOGIN:}
+      password: ${HBASE_PASSWORD:}
+
+server:
+  port: ${IES_SERVER_PORT:8080}
